@@ -1,0 +1,8 @@
+{
+  "name": "Martin Mwihoti | Range Rover Centre",
+  "description": "Digital business card for Martin Mwihoti, Automotive Sales Manager at Range Rover Centre Nairobi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
