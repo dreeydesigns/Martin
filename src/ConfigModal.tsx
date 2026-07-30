@@ -3,8 +3,7 @@ import { motion } from 'motion/react';
 import { Upload, Download, Cloud, X, Lock, FileImage, User, Activity, Settings, MessageSquare, Clock, Eye } from 'lucide-react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import CropModal from './CropModal';
-import { auth, storage } from './firebase';
-import { signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { storage } from './firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const ConfigInput = ({ label, name, value, onChange, t }: any) => (
@@ -29,16 +28,7 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
 
   const [dateRange, setDateRange] = useState<'7' | '30' | 'all'>('7');
 
-  // Auth state
-  const [isAuthenticated, setIsAuthenticated] = useState(!!auth.currentUser);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [resetMessage, setResetMessage] = useState('');
-  const [isResetting, setIsResetting] = useState(false);
-
-  // Storage upload state
+// Storage upload state
   const [uploadingImage, setUploadingImage] = useState<string | null>(null);
 
   const t = {
@@ -49,38 +39,6 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
     inputBorder: isDarkMode ? "border-zinc-800" : "border-stone-200",
     tabBg: isDarkMode ? "bg-zinc-800" : "bg-stone-200",
     tabActive: isDarkMode ? "bg-zinc-700" : "bg-white shadow-sm",
-  };
-
-  const handleResetPassword = async () => {
-    if (!email) {
-      setAuthError('Please enter your email to reset password.');
-      return;
-    }
-    setIsResetting(true);
-    setAuthError('');
-    setResetMessage('');
-    try {
-      await sendPasswordResetEmail(auth, email);
-      setResetMessage('Password reset email sent! Check your inbox.');
-    } catch (err: any) {
-      setAuthError('Failed to send reset email. Ensure the email is correct.');
-    } finally {
-      setIsResetting(false);
-    }
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAuthenticating(true);
-    setAuthError('');
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      setIsAuthenticated(true);
-    } catch (err: any) {
-      setAuthError('Invalid credentials or auth not enabled in console.');
-    } finally {
-      setIsAuthenticating(false);
-    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -166,53 +124,6 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
     return chartData;
   };
   const analyticsData = getAnalyticsData();
-
-  if (!isAuthenticated) {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
-        <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className={`w-full max-w-sm rounded-xl p-6 shadow-2xl border ${t.bg}`}>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className={`text-lg font-medium flex items-center gap-2 ${t.textPrimary}`}>
-              <Lock size={18} /> Admin Access
-            </h2>
-            <button onClick={onClose} className="p-2 rounded-full hover:bg-black/10 transition-colors">
-              <X size={18} className={t.textPrimary} />
-            </button>
-          </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className={`block text-xs mb-1 ${t.textSecondary}`}>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className={`w-full px-3 py-2 rounded-lg border text-sm ${t.inputBg} ${t.inputBorder} ${t.textPrimary}`} />
-            </div>
-            <div>
-              <label className={`block text-xs mb-1 ${t.textSecondary}`}>Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required className={`w-full px-3 py-2 rounded-lg border text-sm ${t.inputBg} ${t.inputBorder} ${t.textPrimary}`} />
-            </div>
-            {authError && <p className="text-red-500 text-xs">{authError}</p>}
-            {resetMessage && <p className="text-emerald-500 text-xs">{resetMessage}</p>}
-            
-            <div className="flex flex-col gap-2">
-              <button disabled={isAuthenticating} type="submit" className="w-full py-2 rounded-lg theme-bg text-white text-sm font-medium hover:opacity-90 transition-opacity">
-                {isAuthenticating ? 'Authenticating...' : 'Login'}
-              </button>
-              <button 
-                type="button" 
-                onClick={handleResetPassword}
-                disabled={isResetting || isAuthenticating}
-                className={`w-full py-2 rounded-lg border text-sm font-medium transition-opacity ${t.inputBorder} ${t.textPrimary} hover:opacity-80`}
-              >
-                {isResetting ? 'Sending...' : 'Forgot Password?'}
-              </button>
-            </div>
-            
-            <p className={`text-[10px] text-center mt-2 ${t.textSecondary}`}>
-              You must enable Email/Password auth in Firebase Console.
-            </p>
-          </form>
-        </motion.div>
-      </motion.div>
-    );
-  }
 
   return (
     <>
