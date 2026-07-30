@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { 
   Phone, Mail, MessageCircle, MapPin, Clock, 
   Award, CheckCircle, Car, Edit,
@@ -488,6 +489,25 @@ END:VCALENDAR`;
   if (isLoading) {
     return (
       <div className={`min-h-screen ${isDarkMode ? 'bg-zinc-950' : 'bg-stone-50'} flex flex-col items-center justify-center p-4`}>
+
+      <Helmet>
+        <title>{config.name} | {config.title}</title>
+        <meta name="description" content={config.heroTagline} />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="profile" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:title" content={`${config.name} | ${config.title}`} />
+        <meta property="og:description" content={config.heroTagline} />
+        <meta property="og:image" content={config.profileImage} />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={window.location.href} />
+        <meta property="twitter:title" content={`${config.name} | ${config.title}`} />
+        <meta property="twitter:description" content={config.heroTagline} />
+        <meta property="twitter:image" content={config.profileImage} />
+      </Helmet>
         <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1.5 }} className="w-full max-w-xl space-y-6">
           <div className="h-64 w-full bg-zinc-800/20 rounded-3xl" />
           <div className="flex flex-col items-center -mt-16">
@@ -553,7 +573,12 @@ END:VCALENDAR`;
         )}
       </AnimatePresence>
 
-      <main className={`max-w-md mx-auto sm:shadow-2xl sm:border sm:rounded-2xl overflow-hidden relative transition-colors duration-500 ${t.cardBg} ${t.border}`}>
+      <main className={`w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto sm:shadow-2xl sm:border sm:rounded-2xl overflow-hidden relative transition-colors duration-500 ${t.cardBg} ${t.border}`}>
+        <div className="flex flex-col md:flex-row w-full relative">
+          
+          {/* Left Column */}
+          <div className="w-full md:w-[45%] lg:w-[40%] md:border-r border-inherit relative">
+            <div className="md:sticky md:top-0">
         
         {/* Top Controls */}
         <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
@@ -765,6 +790,24 @@ END:VCALENDAR`;
         </motion.section>
 
         <div className={`w-full h-[1px] transition-colors duration-500 ${isDarkMode ? 'bg-gradient-to-r from-zinc-950 via-zinc-800 to-zinc-950' : 'bg-gradient-to-r from-stone-50 via-stone-200 to-stone-50'}`}></div>
+
+        {/* Social Links */}
+        <motion.section 
+          className="px-6 pt-6 pb-10 flex justify-center gap-6"
+          variants={fadeInUp}
+          initial="initial"
+          whileInView="animate"
+          viewport={{ once: true }}
+        >
+          <SocialLink href={config.facebook} icon={<Facebook size={22} />} t={t} isDarkMode={isDarkMode} onClick={() => handleTrackClick('facebook')} />
+          <SocialLink href={config.instagram} icon={<Instagram size={22} />} t={t} isDarkMode={isDarkMode} onClick={() => handleTrackClick('instagram')} />
+        </motion.section>
+            </div>
+          </div>
+          
+          {/* Right Column */}
+          <div className="w-full md:w-[55%] lg:w-[60%]">
+
 
         {/* About Section */}
         <motion.section 
@@ -1093,18 +1136,6 @@ END:VCALENDAR`;
           </div>
         </motion.section>
 
-        {/* Social Links */}
-        <motion.section 
-          className="px-6 pt-6 pb-10 flex justify-center gap-6"
-          variants={fadeInUp}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true }}
-        >
-          <SocialLink href={config.facebook} icon={<Facebook size={22} />} t={t} isDarkMode={isDarkMode} onClick={() => handleTrackClick('facebook')} />
-          <SocialLink href={config.instagram} icon={<Instagram size={22} />} t={t} isDarkMode={isDarkMode} onClick={() => handleTrackClick('instagram')} />
-        </motion.section>
-
         {/* Footer */}
         <footer className={`py-8 px-6 text-center border-t transition-colors duration-500 ${isDarkMode ? 'bg-zinc-950 border-zinc-900' : 'bg-stone-100 border-stone-200'}`}>
           <p className="text-zinc-500 text-xs font-light mb-2 uppercase tracking-wider hover:text-zinc-400 transition-colors">
@@ -1137,6 +1168,9 @@ END:VCALENDAR`;
             </motion.button>
           )}
         </AnimatePresence>
+          </div>
+        </div>
+
 
       </main>
     </div>
