@@ -11,11 +11,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import QRCode from 'react-qr-code';
 import confetti from 'canvas-confetti';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import CropModal from './CropModal';
-import ConfigModal from './ConfigModal';
 
-import { db, doc, setDoc, getDoc, updateDoc, auth, storage } from './firebase';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { db, doc, setDoc, getDoc, updateDoc, storage } from './firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 
@@ -153,19 +150,14 @@ export default function App() {
   const [rawViewsData, setRawViewsData] = useState<Record<string, number>>({});
   const [analyticsData, setAnalyticsData] = useState<{date: string, views: number}[]>([]);
   const [socialClicks, setSocialClicks] = useState<Record<string, number>>({});
-  const [visitorLocations, setVisitorLocations] = useState<Record<string, number>>({});
-  
-  const [isEditing, setIsEditing] = useState(false);
-  const [config, setConfig] = useState(defaultConfig);
+  const [visitorLocations, setVisitorLocations] = useState<Record<string, number>>({});  const [config, setConfig] = useState(defaultConfig);
 
   const [formName, setFormName] = useState('');
   const [formMessage, setFormMessage] = useState('');
   const [formPhone, setFormPhone] = useState('');
   const [formError, setFormError] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [sendResult, setSendResult] = useState<'success' | 'error' | null>(null);
-  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
-  
+  const [sendResult, setSendResult] = useState<'success' | 'error' | null>(null);  
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const content = contentData[lang];
@@ -253,27 +245,6 @@ export default function App() {
       console.error("Error tracking click", e);
     }
   };
-
-  const handleSaveConfig = async (newConfig: typeof config) => {
-    setConfig(newConfig);
-    localStorage.setItem('business_card_config', JSON.stringify(newConfig));
-    setIsEditing(false);
-    setToast({ message: 'Configuration saved locally!', type: 'success' });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleSyncCloud = async (newConfig: typeof config) => {
-    try {
-      await setDoc(doc(db, 'configs', 'main'), newConfig);
-      setToast({ message: 'Configuration successfully synced to cloud!', type: 'success' });
-      setTimeout(() => setToast(null), 3000);
-    } catch (e) {
-      console.error("Sync error", e);
-      setToast({ message: 'Failed to sync. Please try again.', type: 'error' });
-      setTimeout(() => setToast(null), 3000);
-    }
-  };
-
   useEffect(() => {
     const checkStatus = () => {
       if (config.statusOverride === 'available') {
@@ -539,39 +510,6 @@ END:VCALENDAR`;
       `}</style>
 
       {/* Edit Mode Modal */}
-      <AnimatePresence>
-        {isEditing && (
-          <ConfigModal 
-            currentConfig={config} 
-            analyticsData={analyticsData}
-            rawViewsData={rawViewsData}
-            socialClicks={socialClicks}
-            visitorLocations={visitorLocations}
-            onSave={handleSaveConfig} 
-            onSync={handleSyncCloud}
-            onClose={() => setIsEditing(false)} 
-            isDarkMode={isDarkMode} 
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 ${
-              toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
-            }`}
-          >
-            <span className="text-sm font-medium">{toast.message}</span>
-            <button onClick={() => setToast(null)} className="p-1 hover:bg-white/20 rounded-full transition-colors">
-              <X size={16} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <main className={`w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto sm:shadow-2xl sm:border sm:rounded-2xl overflow-hidden relative transition-colors duration-500 ${t.cardBg} ${t.border}`}>
         <div className="flex flex-col md:flex-row w-full relative">
@@ -582,18 +520,6 @@ END:VCALENDAR`;
         
         {/* Top Controls */}
         <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-          {/* Edit Button */}
-          <button 
-            onClick={() => setIsEditing(true)} 
-            className={`p-2 rounded-full backdrop-blur-md border transition-all duration-300 active:scale-95 flex items-center justify-center w-9 h-9 ${
-              isDarkMode 
-                ? 'bg-black/40 border-white/10 text-white/80 hover:text-white hover:bg-black/60' 
-                : 'bg-white/60 border-black/10 text-zinc-700 hover:text-black hover:bg-white/80 shadow-sm'
-            }`}
-            aria-label="Edit Profile"
-          >
-            <Edit size={14} />
-          </button>
           {/* Language Toggle */}
           <button 
             onClick={toggleLanguage} 
@@ -653,16 +579,6 @@ END:VCALENDAR`;
           </div>
           
           <div className="relative z-10 pt-20 pb-8 px-6 flex flex-col items-center text-center">
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className={`w-32 h-32 rounded-full border-2 p-1 mb-6 shadow-xl theme-border ${isDarkMode ? 'bg-zinc-950' : 'bg-white'}`}
-            >
-              <div className="w-full h-full rounded-full overflow-hidden bg-zinc-800">
-                <ImageWithPlaceholder src={config.profileImage} alt={config.name} className="w-full h-full" />
-              </div>
-            </motion.div>
             
             <motion.h1 
               initial={{ y: 10, opacity: 0 }}
