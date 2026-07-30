@@ -168,23 +168,6 @@ export default function App() {
 
   const content = contentData[lang];
 
-  if (isLoading) {
-    return (
-      <div className={`min-h-screen ${isDarkMode ? 'bg-zinc-950' : 'bg-stone-50'} flex flex-col items-center justify-center p-4`}>
-        <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1.5 }} className="w-full max-w-xl space-y-6">
-          <div className="h-64 w-full bg-zinc-800/20 rounded-3xl" />
-          <div className="flex flex-col items-center -mt-16">
-            <div className="w-32 h-32 rounded-full border-4 border-white bg-zinc-800/20" />
-            <div className="h-6 w-48 bg-zinc-800/20 rounded-md mt-4" />
-            <div className="h-4 w-32 bg-zinc-800/20 rounded-md mt-2" />
-          </div>
-          <div className="h-24 w-full bg-zinc-800/20 rounded-2xl" />
-        </motion.div>
-      </div>
-    );
-  }
-
-
   useEffect(() => {
     const fetchConfig = async () => {
       try {
@@ -496,6 +479,23 @@ END:VCALENDAR`;
     inputBg: isDarkMode ? "bg-zinc-950" : "bg-white",
     inputBorder: isDarkMode ? "border-zinc-800 theme-ring" : "border-stone-300 theme-ring",
   };
+
+  if (isLoading) {
+    return (
+      <div className={`min-h-screen ${isDarkMode ? 'bg-zinc-950' : 'bg-stone-50'} flex flex-col items-center justify-center p-4`}>
+        <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ repeat: Infinity, duration: 1.5 }} className="w-full max-w-xl space-y-6">
+          <div className="h-64 w-full bg-zinc-800/20 rounded-3xl" />
+          <div className="flex flex-col items-center -mt-16">
+            <div className="w-32 h-32 rounded-full border-4 border-white bg-zinc-800/20" />
+            <div className="h-6 w-48 bg-zinc-800/20 rounded-md mt-4" />
+            <div className="h-4 w-32 bg-zinc-800/20 rounded-md mt-2" />
+          </div>
+          <div className="h-24 w-full bg-zinc-800/20 rounded-2xl" />
+        </motion.div>
+      </div>
+    );
+  }
+
 
   return (
     <div className={`min-h-screen font-sans sm:py-8 selection-theme transition-colors duration-500 ${t.bg}`}>
