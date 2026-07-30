@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Upload, Download, Cloud, X, Lock, FileImage, User, Activity, Settings, MessageSquare, Clock, Eye } from 'lucide-react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -41,9 +41,25 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
     tabActive: isDarkMode ? "bg-zinc-700" : "bg-white shadow-sm",
   };
 
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const newConfig = { ...formData, [e.target.name]: e.target.value };
+    setFormData(newConfig);
+    
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      onSave(newConfig);
+      onSync(newConfig);
+    }, 1200);
   };
+  
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, []);
 
   const handleExport = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(formData, null, 2));
@@ -152,20 +168,20 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
           
           <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
             {/* Sidebar Tabs */}
-            <div className={`md:w-48 border-r border-inherit p-3 space-y-1 ${isDarkMode ? 'bg-zinc-900' : 'bg-stone-50'} overflow-y-auto`}>
-              <button onClick={() => setActiveTab('profile')} className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'profile' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
+            <div className={`md:w-48 border-r md:border-b-0 border-b border-inherit p-3 flex md:flex-col gap-2 overflow-x-auto md:overflow-y-auto ${isDarkMode ? 'bg-zinc-900' : 'bg-stone-50'}`}>
+              <button onClick={() => setActiveTab('profile')} className={`shrink-0 md:w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'profile' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
                 <User size={16} /> Profile Info
               </button>
-              <button onClick={() => setActiveTab('theme')} className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'theme' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
+              <button onClick={() => setActiveTab('theme')} className={`shrink-0 md:w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'theme' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
                 <FileImage size={16} /> Theme & Media
               </button>
-              <button onClick={() => setActiveTab('whatsapp')} className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'whatsapp' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
+              <button onClick={() => setActiveTab('whatsapp')} className={`shrink-0 md:w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'whatsapp' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
                 <MessageSquare size={16} /> WhatsApp
               </button>
-              <button onClick={() => setActiveTab('hours')} className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'hours' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
+              <button onClick={() => setActiveTab('hours')} className={`shrink-0 md:w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'hours' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
                 <Clock size={16} /> Operating Hours
               </button>
-              <button onClick={() => setActiveTab('analytics')} className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'analytics' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
+              <button onClick={() => setActiveTab('analytics')} className={`shrink-0 md:w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeTab === 'analytics' ? t.tabActive + ' ' + t.textPrimary + ' shadow-sm' : t.textSecondary + ' hover:bg-zinc-500/10'}`}>
                 <Activity size={16} /> Analytics
               </button>
             </div>
@@ -176,7 +192,7 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
               {activeTab === 'profile' && (
                 <div className="space-y-4">
                   <div className="mb-4">
-                    <label className={`block text-xs font-medium mb-1 ${t.textPrimary} opacity-80`}>Status Mode</label>
+                    <label className={`block text-xs font-medium mb-1 ${t.textPrimary} opacity-80`}>Status Mode (statusOverride)</label>
                     <select 
                       name="statusOverride"
                       value={formData.statusOverride}
@@ -189,18 +205,18 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
                     </select>
                   </div>
                   
-                  <ConfigInput label="Name" name="name" value={formData.name} onChange={handleChange} t={t} />
-                  <ConfigInput label="Title" name="title" value={formData.title} onChange={handleChange} t={t} />
-                  <ConfigInput label="Company" name="company" value={formData.company} onChange={handleChange} t={t} />
-                  <ConfigInput label="Hero Tagline" name="heroTagline" value={formData.heroTagline} onChange={handleChange} t={t} />
-                  <ConfigInput label="Phone" name="phone" value={formData.phone} onChange={handleChange} t={t} />
-                  <ConfigInput label="Email" name="email" value={formData.email} onChange={handleChange} t={t} />
-                  <ConfigInput label="Address" name="address" value={formData.address} onChange={handleChange} t={t} />
-                  <ConfigInput label="Instagram URL" name="instagram" value={formData.instagram} onChange={handleChange} t={t} />
-                  <ConfigInput label="Facebook URL" name="facebook" value={formData.facebook} onChange={handleChange} t={t} />
+                  <ConfigInput label="Full Name (name)" name="name" value={formData.name} onChange={handleChange} t={t} />
+                  <ConfigInput label="Job Title (title)" name="title" value={formData.title} onChange={handleChange} t={t} />
+                  <ConfigInput label="Company Name (company)" name="company" value={formData.company} onChange={handleChange} t={t} />
+                  <ConfigInput label="Hero Tagline (heroTagline)" name="heroTagline" value={formData.heroTagline} onChange={handleChange} t={t} />
+                  <ConfigInput label="Contact Phone (phone)" name="phone" value={formData.phone} onChange={handleChange} t={t} />
+                  <ConfigInput label="Contact Email (email)" name="email" value={formData.email} onChange={handleChange} t={t} />
+                  <ConfigInput label="Physical Address (address)" name="address" value={formData.address} onChange={handleChange} t={t} />
+                  <ConfigInput label="Instagram Profile URL (instagram)" name="instagram" value={formData.instagram} onChange={handleChange} t={t} />
+                  <ConfigInput label="Facebook Profile URL (facebook)" name="facebook" value={formData.facebook} onChange={handleChange} t={t} />
                   
                   <div>
-                    <label className={`block text-xs font-medium mb-1 ${t.textPrimary} opacity-80`}>About Me (Paragraph 1)</label>
+                    <label className={`block text-xs font-medium mb-1 ${t.textPrimary} opacity-80`}>About Me (Paragraph 1 - aboutP1)</label>
                     <textarea 
                       name="aboutP1"
                       value={formData.aboutP1}
@@ -210,7 +226,7 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
                     />
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-1 ${t.textPrimary} opacity-80`}>About Me (Paragraph 2)</label>
+                    <label className={`block text-xs font-medium mb-1 ${t.textPrimary} opacity-80`}>About Me (Paragraph 2 - aboutP2)</label>
                     <textarea 
                       name="aboutP2"
                       value={formData.aboutP2}
@@ -225,7 +241,7 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
               {activeTab === 'theme' && (
                 <div className="space-y-6">
                   <div>
-                    <label className={`block text-xs font-medium mb-2 ${t.textPrimary} opacity-80`}>Primary Accent Color</label>
+                    <label className={`block text-xs font-medium mb-2 ${t.textPrimary} opacity-80`}>Primary Accent Color (primaryColor)</label>
                     <div className="flex items-center gap-3">
                       <input 
                         type="color" 
@@ -239,14 +255,14 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
                   </div>
                   
                   <div className="border-t border-inherit pt-4">
-                    <label className={`block text-xs font-medium mb-2 ${t.textPrimary} opacity-80`}>Profile Image</label>
-                    <div className="flex items-center gap-4 mb-2">
+                    <label className={`block text-xs font-medium mb-2 ${t.textPrimary} opacity-80`}>Profile Image (profileImage)</label>
+                    <div className="flex flex-col sm:flex-row items-center gap-4 mb-2">
                       {formData.profileImage ? (
-                        <img src={formData.profileImage} alt="Profile preview" className="w-16 h-16 rounded-full object-cover border-2 border-inherit" />
+                        <img src={formData.profileImage} alt="Profile preview" className="w-16 h-16 shrink-0 rounded-full object-cover border-2 border-inherit" />
                       ) : (
-                        <div className={`w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center ${t.inputBorder} ${t.textSecondary}`}>No Img</div>
+                        <div className={`w-16 h-16 shrink-0 rounded-full border-2 border-dashed flex items-center justify-center ${t.inputBorder} ${t.textSecondary}`}>No Img</div>
                       )}
-                      <label className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 rounded-lg border cursor-pointer transition-colors ${t.inputBorder} ${t.inputBg} hover:opacity-80`}>
+                      <label className={`flex w-full sm:flex-1 items-center justify-center gap-2 px-4 py-3 rounded-lg border cursor-pointer transition-colors ${t.inputBorder} ${t.inputBg} hover:opacity-80`}>
                         {uploadingImage === 'profileImage' ? (
                            <div className="w-4 h-4 border-2 border-zinc-400 border-t-zinc-800 rounded-full animate-spin" />
                         ) : (
@@ -261,7 +277,7 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
                   </div>
 
                   <div className="border-t border-inherit pt-4">
-                    <label className={`block text-xs font-medium mb-2 ${t.textPrimary} opacity-80`}>Background Image</label>
+                    <label className={`block text-xs font-medium mb-2 ${t.textPrimary} opacity-80`}>Background Image (bgImage)</label>
                     <div className="flex flex-col gap-3 mb-2">
                       {formData.bgImage ? (
                         <img src={formData.bgImage} alt="Background preview" className="w-full h-24 rounded-lg object-cover border border-inherit" />
@@ -286,10 +302,10 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
 
               {activeTab === 'whatsapp' && (
                 <div className="space-y-6">
-                  <ConfigInput label="WhatsApp Number" name="whatsapp" value={formData.whatsapp} onChange={handleChange} t={t} />
+                  <ConfigInput label="WhatsApp Number (whatsapp)" name="whatsapp" value={formData.whatsapp} onChange={handleChange} t={t} />
                   
                   <div>
-                    <label className={`block text-xs font-medium mb-1 ${t.textPrimary} opacity-80`}>WhatsApp Auto-Fill Template</label>
+                    <label className={`block text-xs font-medium mb-1 ${t.textPrimary} opacity-80`}>WhatsApp Auto-Fill Template (whatsappTemplate)</label>
                     <p className={`text-[10px] mb-2 ${t.textSecondary}`}>Variables: {'{name}'}, {'{message}'}</p>
                     <textarea 
                       name="whatsappTemplate"
@@ -313,7 +329,7 @@ export default function ConfigModal({ currentConfig, rawViewsData, socialClicks,
 
               {activeTab === 'hours' && (
                 <div className="space-y-4">
-                  <h3 className={`text-sm font-medium mb-4 ${t.textPrimary}`}>Operating Hours</h3>
+                  <h3 className={`text-sm font-medium mb-4 ${t.textPrimary}`}>Operating Hours (operatingHours)</h3>
                   {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((dayName, idx) => {
                     const dIdx = idx === 6 ? 0 : idx + 1;
                     const hours = formData.operatingHours?.[dIdx] || { enabled: false, start: '09:00', end: '17:00' };

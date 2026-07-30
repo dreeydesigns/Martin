@@ -163,6 +163,7 @@ export default function App() {
   const [formError, setFormError] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState<'success' | 'error' | null>(null);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -256,15 +257,19 @@ export default function App() {
     setConfig(newConfig);
     localStorage.setItem('business_card_config', JSON.stringify(newConfig));
     setIsEditing(false);
+    setToast({ message: 'Configuration saved locally!', type: 'success' });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const handleSyncCloud = async (newConfig: typeof config) => {
     try {
       await setDoc(doc(db, 'configs', 'main'), newConfig);
-      alert('Configuration successfully synced to cloud!');
+      setToast({ message: 'Configuration successfully synced to cloud!', type: 'success' });
+      setTimeout(() => setToast(null), 3000);
     } catch (e) {
       console.error("Sync error", e);
-      alert('Failed to sync. Please try again.');
+      setToast({ message: 'Failed to sync. Please try again.', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
     }
   };
 
@@ -527,6 +532,24 @@ END:VCALENDAR`;
             onClose={() => setIsEditing(false)} 
             isDarkMode={isDarkMode} 
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 ${
+              toast.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+            }`}
+          >
+            <span className="text-sm font-medium">{toast.message}</span>
+            <button onClick={() => setToast(null)} className="p-1 hover:bg-white/20 rounded-full transition-colors">
+              <X size={16} />
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
 
