@@ -21,8 +21,8 @@ const defaultConfig = {
   profileImage: "https://storage.googleapis.com/aistudio-dev-uploads/e0fb3af3-2e0f-4886-acbc-992a5435e165.jpeg",
   primaryColor: "#c5a059",
   name: "Martin Mwihoti",
-  title: "Sales & Marketing Manager",
-  company: "Range Rover Centre Ltd",
+  title: "Land Rover, Range Rover dealer",
+  company: "",
   phone: "+254704183358",
   whatsapp: "+254704183358",
   whatsappTemplate: "Hi Martin, I'm {name}.\n\n{message}",
@@ -34,8 +34,8 @@ const defaultConfig = {
   hoursSat: "Saturday: 9:00 AM - 1:00 PM",
   hoursSun: "Sunday: Closed",
   heroTagline: "\"Dealer in Landrover, Range Rover and Discovery. Imports, Insurance, Local Re-sale, Parts and Repairs.\"",
-  aboutP1: "With over a decade of experience in automotive sales, I specialize in matching clients with the perfect Land Rover or Range Rover to suit their lifestyle.",
-  aboutP2: "As the Sales & Marketing Manager at Range Rover Centre Ltd, my approach is built on transparency, personalized service, and a deep passion for the heritage of the brand. Whether you are exploring our latest models or seeking a certified pre-owned vehicle, I am committed to making your ownership journey seamless and rewarding.",
+  aboutP1: "With over a decade of experience in luxury automotive sales, I specialize in matching clients with the perfect Land Rover or Range Rover to suit their lifestyle.",
+  aboutP2: "As a Land Rover and Range Rover dealer, my approach is built on transparency, personalized service, and a deep passion for the heritage of the brand. Whether you are exploring our latest models or seeking a certified pre-owned vehicle, I am committed to making your ownership journey seamless and rewarding.",
   statusOverride: "auto"
 };
 
@@ -167,15 +167,28 @@ export default function App() {
       try {
         const configRef = doc(db, 'configs', 'main');
         const configSnap = await getDoc(configRef);
+        let loadedConfig = defaultConfig;
         if (configSnap.exists()) {
-          setConfig({ ...defaultConfig, ...configSnap.data() as typeof defaultConfig });
+          loadedConfig = { ...defaultConfig, ...configSnap.data() as typeof defaultConfig };
         } else {
-          // Check local storage fallback
           const savedConfig = localStorage.getItem('business_card_config');
           if (savedConfig) {
-            setConfig({ ...defaultConfig, ...JSON.parse(savedConfig) });
+            loadedConfig = { ...defaultConfig, ...JSON.parse(savedConfig) };
           }
         }
+        
+        // Ensure outdated title & company are replaced
+        if (loadedConfig.title?.toLowerCase().includes("sales") || loadedConfig.title?.toLowerCase().includes("manager")) {
+          loadedConfig.title = "Land Rover, Range Rover dealer";
+        }
+        if (loadedConfig.company?.toLowerCase().includes("range rover centre")) {
+          loadedConfig.company = "";
+        }
+        if (loadedConfig.aboutP2?.includes("Sales & Marketing Manager")) {
+          loadedConfig.aboutP2 = "As a Land Rover and Range Rover dealer, my approach is built on transparency, personalized service, and a deep passion for the heritage of the brand. Whether you are exploring our latest models or seeking a certified pre-owned vehicle, I am committed to making your ownership journey seamless and rewarding.";
+        }
+        
+        setConfig(loadedConfig);
       } catch (e) {
         console.error("Error fetching config", e);
         const savedConfig = localStorage.getItem('business_card_config');
@@ -592,18 +605,20 @@ END:VCALENDAR`;
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
-              className="font-medium text-sm tracking-wider uppercase mb-1 theme-text"
+              className={`font-medium text-sm tracking-wider uppercase ${config.company ? 'mb-1' : 'mb-6'} theme-text`}
             >
               {config.title}
             </motion.p>
-            <motion.p 
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className={`text-sm mb-6 transition-colors duration-500 ${t.textSecondary}`}
-            >
-              {config.company}
-            </motion.p>
+            {config.company && (
+              <motion.p 
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className={`text-sm mb-6 transition-colors duration-500 ${t.textSecondary}`}
+              >
+                {config.company}
+              </motion.p>
+            )}
             
             <motion.div 
               initial={{ scaleX: 0 }}
